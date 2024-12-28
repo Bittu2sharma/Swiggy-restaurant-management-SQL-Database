@@ -1,0 +1,115 @@
+-- QUERIES TO DRIVE POWERFUL INSIGHTS ON THE GIVEN DATA
+-- 1. Retrieve all restaurants offering "Indian" cuisine with a rating above 4.5.
+SELECT hotel_name, rating, food_type, location 
+FROM swiggy_cleaned
+WHERE rating > 4.5 AND food_type LIKE '%Indian%';
+ 
+-- 2. Find the average time (in minutes) for all restaurants grouped by location. 
+SELECT location, AVG(time_minutes) AS average_time
+FROM swiggy_cleaned
+GROUP BY location;
+
+-- 3. List restaurants that provide offers (either offer_above or offer_percentage is not "not_available"). 
+SELECT hotel_name, location, offer_above, offer_percentage
+FROM swiggy_cleaned
+WHERE offer_above != 'not_available' OR offer_percentage != 'not_available';
+
+-- 4. Fetch the names of restaurants that serve "Chinese" cuisine but have a rating below 4. 
+SELECT hotel_name, rating, location
+FROM swiggy_cleaned
+WHERE food_type LIKE '%Chinese%' AND rating < 4;
+
+-- 5. Identify the locations with the most restaurants serving "Desserts."
+SELECT location, COUNT(*) AS desserts_count
+FROM swiggy_cleaned
+WHERE food_type LIKE '%Desserts%'
+GROUP BY location
+ORDER BY desserts_count DESC;
+
+-- 6. Find the restaurant with the maximum offer percentage. 
+SELECT hotel_name, offer_percentage, location
+FROM swiggy_cleaned
+WHERE offer_percentage != 'not_available'
+ORDER BY offer_percentage  DESC
+LIMIT 1;
+
+-- 7. Retrieve all restaurants where "Pizzas" is served and time is under 50 minutes.
+SELECT hotel_name, time_minutes, location
+FROM swiggy_cleaned
+WHERE food_type LIKE '%Pizzas%' AND time_minutes < 50;
+
+-- 8. Calculate the total number of restaurants grouped by cuisine type (use only primary cuisines like Indian, Chinese, etc.).
+SELECT SUBSTRING_INDEX(food_type, ',', 1) AS primary_cuisine, COUNT(*) AS total_restaurants
+FROM swiggy_cleaned
+GROUP BY primary_cuisine
+ORDER BY total_restaurants DESC;
+
+
+
+-- 9. Find restaurants that serve at least two cuisines (i.e., their food_type has a comma).
+SELECT hotel_name, food_type, location
+FROM swiggy_cleaned
+WHERE food_type LIKE '%,%';
+ 
+-- 10. List the top 5 restaurants with the highest ratings that serve "North Indian" cuisine.
+SELECT hotel_name, rating, location
+FROM swiggy_cleaned
+WHERE food_type LIKE '%North Indian%'
+ORDER BY rating DESC
+LIMIT 5;
+
+
+--     INTERMEDIATE LEVEL QUERIES USING SOME IMPORTANT USING DIFFERENT SQL FUNCTIONS.
+--  1. Find the total count of restaurants in each location. 
+SELECT location, COUNT(*) AS total_restaurants
+FROM swiggy_cleaned
+GROUP BY location
+ORDER BY total_restaurants DESC;
+
+-- 2. Locations with the Most Restaurants:
+SELECT location, COUNT(*) AS restaurant_count
+FROM swiggy_cleaned
+GROUP BY location
+ORDER BY restaurant_count DESC
+LIMIT 5;
+
+-- 3. Find the Average Rating of Restaurants Serving "Italian" Cuisine:
+SELECT ROUND(AVG(rating),2) AS avg_rating
+FROM swiggy_cleaned
+WHERE food_type LIKE '%Italian%';
+
+-- 4. Percentage of Restaurants Offering Discounts:
+SELECT 
+    ROUND((COUNT(*) * 100.0) / (SELECT COUNT(*) FROM swiggy_cleaned),0) AS discount_percentage
+FROM swiggy_cleaned
+WHERE offer_above != 'not_available' OR offer_percentage != 'not_available';
+
+-- 5. List the Most Popular Cuisine Type Across All Locations:
+SELECT SUBSTRING_INDEX(food_type, ',', 1) AS primary_cuisine, COUNT(*) AS cuisine_count
+FROM swiggy_cleaned
+GROUP BY primary_cuisine
+ORDER BY cuisine_count DESC
+LIMIT 5;
+
+-- 6. List Restaurants Serving the Most Diverse Cuisine Options (More Than 3 Types)
+SELECT hotel_name, food_type, location
+FROM swiggy_cleaned
+WHERE LENGTH(food_type) - LENGTH(REPLACE(food_type, ',', '')) >= 3;
+
+-- 7. Compare the Average Delivery Time for "North Indian" and "South Indian" Cuisines
+SELECT 
+    SUBSTRING_INDEX(food_type, ',', 1) AS cuisine,
+    AVG(time_minutes) AS avg_delivery_time
+FROM swiggy_cleaned
+WHERE food_type LIKE '%North Indian%' OR food_type LIKE '%South Indian%'
+GROUP BY cuisine;
+
+-- 8. Find Restaurants with Above Average Ratings in Their City:
+SELECT hotel_name, location, rating
+FROM swiggy_cleaned sc
+WHERE rating > (
+    SELECT AVG(rating)
+    FROM swiggy_cleaned
+    WHERE location = sc.location
+);
+ 
